@@ -117,6 +117,11 @@ var queries = {
         });
     }); },
 };
-exports.resolvers = {
-    queries: queries,
+var extraResolvers = {
+    User: {
+        tweets: function (parent) {
+            return db_1.prismaClient.tweet.findMany({ where: { author: { id: parent.id } } });
+        },
+    },
 };
+exports.resolvers = { queries: queries, extraResolvers: extraResolvers };

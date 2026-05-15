@@ -57,6 +57,7 @@ var express5_1 = require("@as-integrations/express5");
 var cors_1 = __importDefault(require("cors"));
 var user_1 = require("./user");
 var jwt_1 = __importDefault(require("../services/jwt"));
+var tweet_1 = require("./tweet");
 function initServer() {
     return __awaiter(this, void 0, void 0, function () {
         var app, graphqlServer;
@@ -68,10 +69,8 @@ function initServer() {
                     app.use(express_1.default.json());
                     app.use((0, cors_1.default)());
                     graphqlServer = new server_1.ApolloServer({
-                        typeDefs: "\n            ".concat(user_1.User.types, "\n\n            ").concat(user_1.User.queries, "\n        "),
-                        resolvers: {
-                            Query: __assign({}, user_1.User.resolvers.queries),
-                        },
+                        typeDefs: "\n        ".concat(user_1.User.types, "\n        ").concat(tweet_1.Tweet.types, "\n\n        type Query {\n          ").concat(user_1.User.queries, "\n          ").concat(tweet_1.Tweet.queries, "\n        }\n\n        type Mutation {\n          ").concat(tweet_1.Tweet.mutations, "\n        }\n      "),
+                        resolvers: __assign(__assign({ Query: __assign(__assign({}, user_1.User.resolvers.queries), tweet_1.Tweet.resolvers.queries), Mutation: __assign({}, tweet_1.Tweet.resolvers.mutations) }, tweet_1.Tweet.resolvers.extraResolvers), user_1.User.resolvers.extraResolvers),
                     });
                     return [4 /*yield*/, graphqlServer.start()];
                 case 1:
@@ -82,7 +81,7 @@ function initServer() {
                             return __generator(this, function (_c) {
                                 return [2 /*return*/, {
                                         user: req.headers.authorization
-                                            ? jwt_1.default.decodeToken(req.headers.authorization.split('Bearer ')[1])
+                                            ? jwt_1.default.decodeToken(req.headers.authorization.split("Bearer ")[1])
                                             : undefined,
                                     }];
                             });

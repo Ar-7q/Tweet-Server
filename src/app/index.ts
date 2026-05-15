@@ -6,6 +6,7 @@ import { prismaClient } from "../clients/db";
 import { User } from "./user";
 import { GraphqlContext } from "../interfaces";
 import JWTService from "../services/jwt";
+import { Tweet } from "./tweet";
 
 export async function initServer() {
   const app = express();
@@ -13,22 +14,32 @@ export async function initServer() {
   app.use(express.json());
   app.use(cors());
 
-  // prismaClient.user.create({
-  //     data: {
-
-  //     }
-  // })
-
   const graphqlServer = new ApolloServer<GraphqlContext>({
     typeDefs: `
-            ${User.types}
+        ${User.types}
+        ${Tweet.types}
 
-            ${User.queries}
-        `,
+        type Query {
+          ${User.queries}
+          ${Tweet.queries}
+        }
+
+        type Mutation {
+          ${Tweet.mutations}
+        }
+      `,
+
     resolvers: {
       Query: {
         ...User.resolvers.queries,
+        ...Tweet.resolvers.queries
       },
+
+      Mutation: {
+        ...Tweet.resolvers.mutations,
+      },
+      ...Tweet.resolvers.extraResolvers,
+      ...User.resolvers.extraResolvers,
     },
   });
 
@@ -40,11 +51,13 @@ export async function initServer() {
       context: async ({ req, res }) => {
         return {
           user: req.headers.authorization
-            ? JWTService.decodeToken(req.headers.authorization.split('Bearer ')[1])
+            ? JWTService.decodeToken(
+                req.headers.authorization.split("Bearer ")[1]
+              )
             : undefined,
         };
       },
-    }),
+    })
   );
 
   return app;
