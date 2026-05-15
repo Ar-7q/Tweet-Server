@@ -3,16 +3,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const JWT_SECRET = process.env.JWT_SECRET;
-class JWTService {
-    static generateTokenForUser(user) {
-        const payload = {
-            id: user?.id,
-            email: user?.email,
-        };
-        const token = jsonwebtoken_1.default.sign(payload, JWT_SECRET);
-        return token;
+var jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+var JWT_SECRET = process.env.JWT_SECRET;
+var JWTService = /** @class */ (function () {
+    function JWTService() {
     }
-}
+    JWTService.generateTokenForUser = function (user) {
+        var payload = {
+            id: user === null || user === void 0 ? void 0 : user.id,
+            email: user === null || user === void 0 ? void 0 : user.email,
+        };
+        var token = jsonwebtoken_1.default.sign(payload, JWT_SECRET);
+        return token;
+    };
+    return JWTService;
+}());
 exports.default = JWTService;
