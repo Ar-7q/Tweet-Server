@@ -16,6 +16,9 @@ var JWTService = /** @class */ (function () {
         var token = jsonwebtoken_1.default.sign(payload, JWT_SECRET);
         return token;
     };
+    JWTService.decodeToken = function (token) {
+        return jsonwebtoken_1.default.verify(token, JWT_SECRET);
+    };
     return JWTService;
 }());
 exports.default = JWTService;

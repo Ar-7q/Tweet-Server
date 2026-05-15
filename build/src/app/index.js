@@ -56,9 +56,11 @@ var server_1 = require("@apollo/server");
 var express5_1 = require("@as-integrations/express5");
 var cors_1 = __importDefault(require("cors"));
 var user_1 = require("./user");
+var jwt_1 = __importDefault(require("../services/jwt"));
 function initServer() {
     return __awaiter(this, void 0, void 0, function () {
         var app, graphqlServer;
+        var _this = this;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -74,7 +76,18 @@ function initServer() {
                     return [4 /*yield*/, graphqlServer.start()];
                 case 1:
                     _a.sent();
-                    app.use('/graphql', (0, express5_1.expressMiddleware)(graphqlServer));
+                    app.use("/graphql", (0, express5_1.expressMiddleware)(graphqlServer, {
+                        context: function (_a) { return __awaiter(_this, [_a], void 0, function (_b) {
+                            var req = _b.req, res = _b.res;
+                            return __generator(this, function (_c) {
+                                return [2 /*return*/, {
+                                        user: req.headers.authorization
+                                            ? jwt_1.default.decodeToken(req.headers.authorization.split('Bearer ')[1])
+                                            : undefined,
+                                    }];
+                            });
+                        }); },
+                    }));
                     return [2 /*return*/, app];
             }
         });

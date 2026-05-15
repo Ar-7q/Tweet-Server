@@ -74,20 +74,45 @@ var queries = {
                         })];
                 case 3:
                     _c.sent();
-                    _c.label = 4;
-                case 4: return [4 /*yield*/, db_1.prismaClient.user.findUnique({
-                        where: { email: data.email },
+                    return [3 /*break*/, 6];
+                case 4: return [4 /*yield*/, db_1.prismaClient.user.update({
+                        where: {
+                            email: data.email,
+                        },
+                        data: {
+                            profileImageUrl: data.picture,
+                        },
                     })];
                 case 5:
+                    _c.sent();
+                    _c.label = 6;
+                case 6: return [4 /*yield*/, db_1.prismaClient.user.findUnique({
+                        where: { email: data.email },
+                    })];
+                case 7:
                     userIndb = _c.sent();
                     if (!userIndb)
-                        throw new Error('user with email not found');
+                        throw new Error("user with email not found");
                     return [4 /*yield*/, jwt_1.default.generateTokenForUser(userIndb)];
-                case 6:
+                case 8:
                     userToken = _c.sent();
-                    return [2 /*return*/, userToken
-                        // return "ok";
-                    ];
+                    return [2 /*return*/, userToken];
+            }
+        });
+    }); },
+    getCurrentUser: function (parent, args, ctx) { return __awaiter(void 0, void 0, void 0, function () {
+        var id, user;
+        var _a;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    id = (_a = ctx.user) === null || _a === void 0 ? void 0 : _a.id;
+                    if (!id)
+                        return [2 /*return*/, null];
+                    return [4 /*yield*/, db_1.prismaClient.user.findUnique({ where: { id: id } })];
+                case 1:
+                    user = _b.sent();
+                    return [2 /*return*/, user];
             }
         });
     }); },
