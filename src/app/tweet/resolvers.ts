@@ -2,6 +2,7 @@ import { Tweet } from "@prisma/client";
 
 import { prismaClient } from "../../clients/db";
 import { GraphqlContext } from "../../interfaces";
+import cloudinary from "../../services/cloudinary";
 
 interface CreateTweetPayload {
   content: string;
@@ -14,6 +15,18 @@ const queries={
 }
 
 const mutations = {
+  uploadImage: async (
+    parent: any,
+    { image }: { image: string }
+  ) => {
+
+    const uploadedImage =
+      await cloudinary.uploader.upload(image, {
+        folder: "ArpitBackend/tweets",
+      });
+
+    return uploadedImage.secure_url;
+  },
   createTweet: async (
     parent: any,
     { payload }: { payload: CreateTweetPayload },

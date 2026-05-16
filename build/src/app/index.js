@@ -66,7 +66,13 @@ function initServer() {
             switch (_a.label) {
                 case 0:
                     app = (0, express_1.default)();
-                    app.use(express_1.default.json());
+                    app.use(express_1.default.json({
+                        limit: "5mb",
+                    }));
+                    app.use(express_1.default.urlencoded({
+                        limit: "5mb",
+                        extended: true,
+                    }));
                     app.use((0, cors_1.default)());
                     graphqlServer = new server_1.ApolloServer({
                         typeDefs: "\n        ".concat(user_1.User.types, "\n        ").concat(tweet_1.Tweet.types, "\n\n        type Query {\n          ").concat(user_1.User.queries, "\n          ").concat(tweet_1.Tweet.queries, "\n        }\n\n        type Mutation {\n          ").concat(tweet_1.Tweet.mutations, "\n        }\n      "),

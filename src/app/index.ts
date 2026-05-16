@@ -11,7 +11,18 @@ import { Tweet } from "./tweet";
 export async function initServer() {
   const app = express();
 
-  app.use(express.json());
+  app.use(
+    express.json({
+      limit: "5mb",
+    }),
+  );
+
+  app.use(
+    express.urlencoded({
+      limit: "5mb",
+      extended: true,
+    }),
+  );
   app.use(cors());
 
   const graphqlServer = new ApolloServer<GraphqlContext>({
@@ -32,7 +43,7 @@ export async function initServer() {
     resolvers: {
       Query: {
         ...User.resolvers.queries,
-        ...Tweet.resolvers.queries
+        ...Tweet.resolvers.queries,
       },
 
       Mutation: {
@@ -52,12 +63,12 @@ export async function initServer() {
         return {
           user: req.headers.authorization
             ? JWTService.decodeToken(
-                req.headers.authorization.split("Bearer ")[1]
+                req.headers.authorization.split("Bearer ")[1],
               )
             : undefined,
         };
       },
-    })
+    }),
   );
 
   return app;

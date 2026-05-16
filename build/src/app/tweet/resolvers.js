@@ -35,15 +35,33 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.resolvers = void 0;
 var db_1 = require("../../clients/db");
+var cloudinary_1 = __importDefault(require("../../services/cloudinary"));
 var queries = {
     getAllTweets: function () {
         return db_1.prismaClient.tweet.findMany({ orderBy: { createdAt: 'desc' } });
     }
 };
 var mutations = {
+    uploadImage: function (parent_1, _a) { return __awaiter(void 0, [parent_1, _a], void 0, function (parent, _b) {
+        var uploadedImage;
+        var image = _b.image;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0: return [4 /*yield*/, cloudinary_1.default.uploader.upload(image, {
+                        folder: "ArpitBackend/tweets",
+                    })];
+                case 1:
+                    uploadedImage = _c.sent();
+                    return [2 /*return*/, uploadedImage.secure_url];
+            }
+        });
+    }); },
     createTweet: function (parent_1, _a, ctx_1) { return __awaiter(void 0, [parent_1, _a, ctx_1], void 0, function (parent, _b, ctx) {
         var tweet;
         var payload = _b.payload;
