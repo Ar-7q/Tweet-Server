@@ -116,6 +116,12 @@ var queries = {
             }
         });
     }); },
+    getUserById: function (parent_1, _a, ctx_1) { return __awaiter(void 0, [parent_1, _a, ctx_1], void 0, function (parent, _b, ctx) {
+        var id = _b.id;
+        return __generator(this, function (_c) {
+            return [2 /*return*/, db_1.prismaClient.user.findUnique({ where: { id: id } })];
+        });
+    }); },
 };
 var extraResolvers = {
     User: {

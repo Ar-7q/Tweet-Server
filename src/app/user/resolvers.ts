@@ -80,6 +80,12 @@ const queries = {
     const user = await prismaClient.user.findUnique({ where: { id } });
     return user;
   },
+
+  getUserById: async (
+    parent: any,
+    { id }: { id: string },
+    ctx: GraphqlContext,
+  ) => prismaClient.user.findUnique({ where: { id } }),
 };
 
 const extraResolvers = {
@@ -89,4 +95,4 @@ const extraResolvers = {
   },
 };
 
-export const resolvers = { queries,extraResolvers };
+export const resolvers = { queries, extraResolvers };
