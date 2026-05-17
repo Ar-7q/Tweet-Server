@@ -16,6 +16,7 @@ export const types = `#graphql
         content:String!
         imageURL:String
         imagePublicId:String
+        createdAt:String
         author:User
     }
 `;
