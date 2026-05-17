@@ -7,26 +7,32 @@ import cloudinary from "../../services/cloudinary";
 interface CreateTweetPayload {
   content: string;
   imageURL?: string;
+  imagePublicId?: string;
 }
 
-const queries={
-    getAllTweets:()=>
-        prismaClient.tweet.findMany({orderBy:{createdAt:'desc'}})
-}
+const queries = {
+  getAllTweets: () =>
+    prismaClient.tweet.findMany({ orderBy: { createdAt: "desc" } }),
+};
 
 const mutations = {
   uploadImage: async (
     parent: any,
-    { image }: { image: string }
+    { image }: { image: string },
+    ctx: GraphqlContext,
   ) => {
+    if (!ctx.user || !ctx.user.id) throw new Error("Youre not authenticated");
 
-    const uploadedImage =
-      await cloudinary.uploader.upload(image, {
-        folder: "ArpitBackend/tweets",
-      });
+    const uploadedImage = await cloudinary.uploader.upload(image, {
+      folder: "ArpitBackend/tweets",
+    });
 
-    return uploadedImage.secure_url;
+    return {
+      imageURL: uploadedImage.secure_url,
+      imagePublicId: uploadedImage.public_id,
+    };
   },
+
   createTweet: async (
     parent: any,
     { payload }: { payload: CreateTweetPayload },
@@ -37,11 +43,55 @@ const mutations = {
       data: {
         content: payload.content,
         imageURL: payload.imageURL,
-        author: { connect: { id: ctx.user.id } },
+        imagePublicId: payload.imagePublicId,
+
+        author: {
+          connect: {
+            id: ctx.user.id,
+          },
+        },
+      },
+    });
+    return tweet;
+  },
+
+  deleteTweet: async (
+    parent: any,
+    { tweetId }: { tweetId: string },
+    ctx: GraphqlContext,
+  ) => {
+    if (!ctx.user || !ctx.user.id) {
+      throw new Error("Youre not authenticated");
+    }
+
+    const tweet = await prismaClient.tweet.findUnique({
+      where: {
+        id: tweetId,
       },
     });
 
-    return tweet;
+    if (!tweet) {
+      throw new Error("Tweet not found");
+    }
+
+    // only owner can delete
+    if (tweet.authorId !== ctx.user.id) {
+      throw new Error("Unauthorized");
+    }
+
+    // delete image from cloudinary
+    if (tweet.imagePublicId) {
+      await cloudinary.uploader.destroy(tweet.imagePublicId);
+    }
+
+    // delete tweet from db
+    await prismaClient.tweet.delete({
+      where: {
+        id: tweetId,
+      },
+    });
+
+    return true;
   },
 };
 
@@ -52,4 +102,4 @@ const extraResolvers = {
   },
 };
 
-export const resolvers = { mutations,extraResolvers,queries };
+export const resolvers = { mutations, extraResolvers, queries };

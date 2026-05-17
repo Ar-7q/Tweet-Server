@@ -44,21 +44,27 @@ var db_1 = require("../../clients/db");
 var cloudinary_1 = __importDefault(require("../../services/cloudinary"));
 var queries = {
     getAllTweets: function () {
-        return db_1.prismaClient.tweet.findMany({ orderBy: { createdAt: 'desc' } });
-    }
+        return db_1.prismaClient.tweet.findMany({ orderBy: { createdAt: "desc" } });
+    },
 };
 var mutations = {
-    uploadImage: function (parent_1, _a) { return __awaiter(void 0, [parent_1, _a], void 0, function (parent, _b) {
+    uploadImage: function (parent_1, _a, ctx_1) { return __awaiter(void 0, [parent_1, _a, ctx_1], void 0, function (parent, _b, ctx) {
         var uploadedImage;
         var image = _b.image;
         return __generator(this, function (_c) {
             switch (_c.label) {
-                case 0: return [4 /*yield*/, cloudinary_1.default.uploader.upload(image, {
-                        folder: "ArpitBackend/tweets",
-                    })];
+                case 0:
+                    if (!ctx.user || !ctx.user.id)
+                        throw new Error("Youre not authenticated");
+                    return [4 /*yield*/, cloudinary_1.default.uploader.upload(image, {
+                            folder: "ArpitBackend/tweets",
+                        })];
                 case 1:
                     uploadedImage = _c.sent();
-                    return [2 /*return*/, uploadedImage.secure_url];
+                    return [2 /*return*/, {
+                            imageURL: uploadedImage.secure_url,
+                            imagePublicId: uploadedImage.public_id,
+                        }];
             }
         });
     }); },
@@ -74,12 +80,59 @@ var mutations = {
                             data: {
                                 content: payload.content,
                                 imageURL: payload.imageURL,
-                                author: { connect: { id: ctx.user.id } },
+                                imagePublicId: payload.imagePublicId,
+                                author: {
+                                    connect: {
+                                        id: ctx.user.id,
+                                    },
+                                },
                             },
                         })];
                 case 1:
                     tweet = _c.sent();
                     return [2 /*return*/, tweet];
+            }
+        });
+    }); },
+    deleteTweet: function (parent_1, _a, ctx_1) { return __awaiter(void 0, [parent_1, _a, ctx_1], void 0, function (parent, _b, ctx) {
+        var tweet;
+        var tweetId = _b.tweetId;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0:
+                    if (!ctx.user || !ctx.user.id) {
+                        throw new Error("Youre not authenticated");
+                    }
+                    return [4 /*yield*/, db_1.prismaClient.tweet.findUnique({
+                            where: {
+                                id: tweetId,
+                            },
+                        })];
+                case 1:
+                    tweet = _c.sent();
+                    if (!tweet) {
+                        throw new Error("Tweet not found");
+                    }
+                    // only owner can delete
+                    if (tweet.authorId !== ctx.user.id) {
+                        throw new Error("Unauthorized");
+                    }
+                    if (!tweet.imagePublicId) return [3 /*break*/, 3];
+                    return [4 /*yield*/, cloudinary_1.default.uploader.destroy(tweet.imagePublicId)];
+                case 2:
+                    _c.sent();
+                    _c.label = 3;
+                case 3: 
+                // delete tweet from db
+                return [4 /*yield*/, db_1.prismaClient.tweet.delete({
+                        where: {
+                            id: tweetId,
+                        },
+                    })];
+                case 4:
+                    // delete tweet from db
+                    _c.sent();
+                    return [2 /*return*/, true];
             }
         });
     }); },

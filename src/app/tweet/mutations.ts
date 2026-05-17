@@ -1,5 +1,9 @@
 export const mutations = `#graphql
 
-    createTweet(payload: CreateTweetData!):Tweet
-    uploadImage(image: String!): String
+  
+
+    createTweet(payload: CreateTweetData!): Tweet
+
+    uploadImage(image: String!): ImageResponse
+    deleteTweet(tweetId: String!): Boolean
 `;

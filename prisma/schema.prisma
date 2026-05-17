@@ -30,6 +30,7 @@ model Tweet {
   id String @id @default(cuid())
   content String
   imageURL String?
+  imagePublicId String?
   authorId String
   author User @relation(fields: [authorId],references: [id])
   createdAt DateTime @default(now())
