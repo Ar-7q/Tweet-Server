@@ -53,6 +53,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.resolvers = void 0;
 var user_1 = __importDefault(require("../../services/user"));
 var tweet_1 = __importDefault(require("../../services/tweet"));
+var db_1 = require("../../clients/db");
 var queries = {
     getAllTweets: function () { return tweet_1.default.getAllTweets(); },
 };
@@ -99,11 +100,33 @@ var mutations = {
             return [2 /*return*/, tweet_1.default.toggleLike(tweetId, ctx.user.id)];
         });
     }); },
+    createComment: function (parent_1, _a, ctx_1) { return __awaiter(void 0, [parent_1, _a, ctx_1], void 0, function (parent, _b, ctx) {
+        var tweetId = _b.tweetId, content = _b.content;
+        return __generator(this, function (_c) {
+            if (!ctx.user || !ctx.user.id) {
+                throw new Error("Unauthorized");
+            }
+            return [2 /*return*/, tweet_1.default.createComment(tweetId, content, ctx.user.id)];
+        });
+    }); },
 };
 var extraResolvers = {
     Tweet: {
         author: function (parent) { return user_1.default.getUserById(parent.authorId); },
         likesCount: function (parent) { return parent._count.likes; },
+        comments: function (parent) {
+            return db_1.prismaClient.comment.findMany({
+                where: {
+                    tweetId: parent.id,
+                },
+                orderBy: {
+                    createdAt: "desc",
+                },
+            });
+        },
+    },
+    Comment: {
+        author: function (parent) { return user_1.default.getUserById(parent.authorId); },
     },
 };
 exports.resolvers = { mutations: mutations, extraResolvers: extraResolvers, queries: queries };

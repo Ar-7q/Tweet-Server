@@ -25,6 +25,8 @@ model User {
 
   tweets Tweet[]
   likes Like[]
+
+  comments Comment[]
 }
 
 model Tweet {
@@ -38,6 +40,8 @@ model Tweet {
   updatedAt DateTime @updatedAt
 
   likes Like[]
+
+  comments Comment[]
 
 }
 
@@ -53,4 +57,18 @@ model Like {
   createdAt DateTime @default(now())
 
   @@unique([userId, tweetId])
+
+  
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+
+  authorId  String
+  tweetId   String
+
+  author User @relation(fields: [authorId], references: [id])
+  tweet  Tweet @relation(fields: [tweetId], references: [id])
 }

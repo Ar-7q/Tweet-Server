@@ -2,6 +2,7 @@ import { Tweet } from "@prisma/client";
 import { GraphqlContext } from "../../interfaces";
 import UserService from "../../services/user";
 import TweetService, { CreateTweetPayload } from "../../services/tweet";
+import { prismaClient } from "../../clients/db";
 
 const queries = {
   getAllTweets: () => TweetService.getAllTweets(),
@@ -56,12 +57,37 @@ const mutations = {
 
     return TweetService.toggleLike(tweetId, ctx.user.id);
   },
+
+  createComment: async (
+    parent: any,
+    { tweetId, content }: { tweetId: string; content: string },
+    ctx: GraphqlContext,
+  ) => {
+    if (!ctx.user || !ctx.user.id) {
+      throw new Error("Unauthorized");
+    }
+
+    return TweetService.createComment(tweetId, content, ctx.user.id);
+  },
 };
 
 const extraResolvers = {
   Tweet: {
     author: (parent: Tweet) => UserService.getUserById(parent.authorId),
     likesCount: (parent: any) => parent._count.likes,
+    comments: (parent: any) => {
+      return prismaClient.comment.findMany({
+        where: {
+          tweetId: parent.id,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
+    },
+  },
+  Comment: {
+    author: (parent: any) => UserService.getUserById(parent.authorId),
   },
 };
 

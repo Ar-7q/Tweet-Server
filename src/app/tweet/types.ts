@@ -11,6 +11,14 @@ export const types = `#graphql
         imagePublicId:String
     }
 
+    type Comment {
+        id: ID!
+        content: String!
+        createdAt: String!
+        author: User!
+        tweet: Tweet!
+    }
+
     type Tweet {
         id:ID!
         content:String!
@@ -19,6 +27,8 @@ export const types = `#graphql
         createdAt:String
         author:User
         likesCount:Int
+        
+        comments:[Comment]
     }
 
     type Mutation {

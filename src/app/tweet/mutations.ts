@@ -7,4 +7,6 @@ export const mutations = `#graphql
     uploadImage(image: String!): ImageResponse
     deleteTweet(tweetId: String!): Boolean
     toggleLike(tweetId: String!): Boolean
-`;
+    createComment(tweetId:String!,content:String!):Comment
+`
+;

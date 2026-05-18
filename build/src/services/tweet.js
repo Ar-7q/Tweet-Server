@@ -163,6 +163,51 @@ var TweetService = /** @class */ (function () {
             });
         });
     };
+    TweetService.createComment = function (tweetId, content, userId) {
+        return __awaiter(this, void 0, void 0, function () {
+            var latestComment, diff;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, db_1.prismaClient.comment.findFirst({
+                            where: {
+                                authorId: userId,
+                            },
+                            orderBy: {
+                                createdAt: "desc",
+                            },
+                        })];
+                    case 1:
+                        latestComment = _a.sent();
+                        if (latestComment) {
+                            diff = Date.now() - new Date(latestComment.createdAt).getTime();
+                            // 5 seconds cooldown
+                            if (diff < 5000) {
+                                throw new Error("Please wait before commenting again");
+                            }
+                        }
+                        return [2 /*return*/, db_1.prismaClient.comment.create({
+                                data: {
+                                    content: content,
+                                    author: {
+                                        connect: {
+                                            id: userId,
+                                        },
+                                    },
+                                    tweet: {
+                                        connect: {
+                                            id: tweetId,
+                                        },
+                                    },
+                                },
+                                include: {
+                                    author: true,
+                                    tweet: true,
+                                },
+                            })];
+                }
+            });
+        });
+    };
     return TweetService;
 }());
 exports.default = TweetService;

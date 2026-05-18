@@ -108,6 +108,54 @@ class TweetService {
 
     return true;
   }
+
+  public static async createComment(
+    tweetId: string,
+    content: string,
+    userId: string,
+  ) {
+    const latestComment = await prismaClient.comment.findFirst({
+      where: {
+        authorId: userId,
+      },
+
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    if (latestComment) {
+      const diff = Date.now() - new Date(latestComment.createdAt).getTime();
+
+      // 5 seconds cooldown
+      if (diff < 5000) {
+        throw new Error("Please wait before commenting again");
+      }
+    }
+
+    return prismaClient.comment.create({
+      data: {
+        content,
+
+        author: {
+          connect: {
+            id: userId,
+          },
+        },
+
+        tweet: {
+          connect: {
+            id: tweetId,
+          },
+        },
+      },
+
+      include: {
+        author: true,
+        tweet: true,
+      },
+    });
+  }
 }
 
 export default TweetService;
