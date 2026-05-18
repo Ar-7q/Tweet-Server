@@ -69,6 +69,18 @@ const mutations = {
 
     return TweetService.createComment(tweetId, content, ctx.user.id);
   },
+
+  deleteComment: async (
+    parent: any,
+    { commentId }: { commentId: string },
+    ctx: GraphqlContext,
+  ) => {
+    if (!ctx.user || !ctx.user.id) {
+      throw new Error("Unauthorized");
+    }
+
+    return TweetService.deleteComment(commentId, ctx.user.id);
+  },
 };
 
 const extraResolvers = {

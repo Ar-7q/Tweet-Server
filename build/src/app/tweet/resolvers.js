@@ -109,6 +109,15 @@ var mutations = {
             return [2 /*return*/, tweet_1.default.createComment(tweetId, content, ctx.user.id)];
         });
     }); },
+    deleteComment: function (parent_1, _a, ctx_1) { return __awaiter(void 0, [parent_1, _a, ctx_1], void 0, function (parent, _b, ctx) {
+        var commentId = _b.commentId;
+        return __generator(this, function (_c) {
+            if (!ctx.user || !ctx.user.id) {
+                throw new Error("Unauthorized");
+            }
+            return [2 /*return*/, tweet_1.default.deleteComment(commentId, ctx.user.id)];
+        });
+    }); },
 };
 var extraResolvers = {
     Tweet: {

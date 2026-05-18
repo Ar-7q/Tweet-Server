@@ -208,6 +208,36 @@ var TweetService = /** @class */ (function () {
             });
         });
     };
+    TweetService.deleteComment = function (commentId, userId) {
+        return __awaiter(this, void 0, void 0, function () {
+            var comment;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, db_1.prismaClient.comment.findUnique({
+                            where: {
+                                id: commentId,
+                            },
+                        })];
+                    case 1:
+                        comment = _a.sent();
+                        if (!comment) {
+                            throw new Error("Comment not found");
+                        }
+                        if (comment.authorId !== userId) {
+                            throw new Error("Unauthorized");
+                        }
+                        return [4 /*yield*/, db_1.prismaClient.comment.delete({
+                                where: {
+                                    id: commentId,
+                                },
+                            })];
+                    case 2:
+                        _a.sent();
+                        return [2 /*return*/, true];
+                }
+            });
+        });
+    };
     return TweetService;
 }());
 exports.default = TweetService;

@@ -8,5 +8,6 @@ export const mutations = `#graphql
     deleteTweet(tweetId: String!): Boolean
     toggleLike(tweetId: String!): Boolean
     createComment(tweetId:String!,content:String!):Comment
+    deleteComment(commentId:String!):Boolean
 `
 ;

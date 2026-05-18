@@ -156,6 +156,30 @@ class TweetService {
       },
     });
   }
+
+  public static async deleteComment(commentId: string, userId: string) {
+    const comment = await prismaClient.comment.findUnique({
+      where: {
+        id: commentId,
+      },
+    });
+
+    if (!comment) {
+      throw new Error("Comment not found");
+    }
+
+    if (comment.authorId !== userId) {
+      throw new Error("Unauthorized");
+    }
+
+    await prismaClient.comment.delete({
+      where: {
+        id: commentId,
+      },
+    });
+
+    return true;
+  }
 }
 
 export default TweetService;
