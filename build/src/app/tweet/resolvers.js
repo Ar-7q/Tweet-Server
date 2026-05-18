@@ -90,10 +90,20 @@ var mutations = {
             return [2 /*return*/, tweet_1.default.deleteTweet(tweetId, ctx.user.id)];
         });
     }); },
+    toggleLike: function (parent_1, _a, ctx_1) { return __awaiter(void 0, [parent_1, _a, ctx_1], void 0, function (parent, _b, ctx) {
+        var tweetId = _b.tweetId;
+        return __generator(this, function (_c) {
+            if (!ctx.user || !ctx.user.id) {
+                throw new Error("You need to sign in for liking");
+            }
+            return [2 /*return*/, tweet_1.default.toggleLike(tweetId, ctx.user.id)];
+        });
+    }); },
 };
 var extraResolvers = {
     Tweet: {
         author: function (parent) { return user_1.default.getUserById(parent.authorId); },
+        likesCount: function (parent) { return parent._count.likes; },
     },
 };
 exports.resolvers = { mutations: mutations, extraResolvers: extraResolvers, queries: queries };

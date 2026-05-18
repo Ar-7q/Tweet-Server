@@ -9,16 +9,16 @@ const queries = {
 
 const mutations = {
   uploadImage: async (
-  parent: any,
-  { image }: { image: string },
-  ctx: GraphqlContext,
-) => {
-  if (!ctx.user || !ctx.user.id) {
-    throw new Error("Youre not authenticated");
-  }
+    parent: any,
+    { image }: { image: string },
+    ctx: GraphqlContext,
+  ) => {
+    if (!ctx.user || !ctx.user.id) {
+      throw new Error("Youre not authenticated");
+    }
 
-  return TweetService.uploadTweetImage(image);
-},
+    return TweetService.uploadTweetImage(image);
+  },
 
   createTweet: async (
     parent: any,
@@ -44,11 +44,24 @@ const mutations = {
 
     return TweetService.deleteTweet(tweetId, ctx.user.id);
   },
+
+  toggleLike: async (
+    parent: any,
+    { tweetId }: { tweetId: string },
+    ctx: GraphqlContext,
+  ) => {
+    if (!ctx.user || !ctx.user.id) {
+      throw new Error("You need to sign in for liking");
+    }
+
+    return TweetService.toggleLike(tweetId, ctx.user.id);
+  },
 };
 
 const extraResolvers = {
   Tweet: {
     author: (parent: Tweet) => UserService.getUserById(parent.authorId),
+    likesCount: (parent: any) => parent._count.likes,
   },
 };
 

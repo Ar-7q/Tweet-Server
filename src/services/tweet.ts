@@ -21,7 +21,17 @@ class TweetService {
   }
 
   public static getAllTweets() {
-    return prismaClient.tweet.findMany({ orderBy: { createdAt: "desc" } });
+    return prismaClient.tweet.findMany({
+      orderBy: { createdAt: "desc" },
+
+      include: {
+        _count: {
+          select: {
+            likes: true,
+          },
+        },
+      },
+    });
   }
 
   public static async uploadTweetImage(image: string) {
@@ -60,6 +70,39 @@ class TweetService {
     await prismaClient.tweet.delete({
       where: {
         id: tweetId,
+      },
+    });
+
+    return true;
+  }
+
+  public static async toggleLike(tweetId: string, userId: string) {
+    // CHECK EXISTING LIKE
+    const existingLike = await prismaClient.like.findUnique({
+      where: {
+        userId_tweetId: {
+          userId,
+          tweetId,
+        },
+      },
+    });
+
+    // UNLIKE
+    if (existingLike) {
+      await prismaClient.like.delete({
+        where: {
+          id: existingLike.id,
+        },
+      });
+
+      return false;
+    }
+
+    // LIKE
+    await prismaClient.like.create({
+      data: {
+        userId,
+        tweetId,
       },
     });
 

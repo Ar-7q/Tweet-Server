@@ -18,5 +18,10 @@ export const types = `#graphql
         imagePublicId:String
         createdAt:String
         author:User
+        likesCount:Int
+    }
+
+    type Mutation {
+        toggleLike(tweetId:String!):Boolean
     }
 `;

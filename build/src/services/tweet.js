@@ -55,7 +55,16 @@ var TweetService = /** @class */ (function () {
         });
     };
     TweetService.getAllTweets = function () {
-        return db_1.prismaClient.tweet.findMany({ orderBy: { createdAt: "desc" } });
+        return db_1.prismaClient.tweet.findMany({
+            orderBy: { createdAt: "desc" },
+            include: {
+                _count: {
+                    select: {
+                        likes: true,
+                    },
+                },
+            },
+        });
     };
     TweetService.uploadTweetImage = function (image) {
         return __awaiter(this, void 0, void 0, function () {
@@ -108,6 +117,46 @@ var TweetService = /** @class */ (function () {
                         })];
                     case 4:
                         // delete tweet from db
+                        _a.sent();
+                        return [2 /*return*/, true];
+                }
+            });
+        });
+    };
+    TweetService.toggleLike = function (tweetId, userId) {
+        return __awaiter(this, void 0, void 0, function () {
+            var existingLike;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, db_1.prismaClient.like.findUnique({
+                            where: {
+                                userId_tweetId: {
+                                    userId: userId,
+                                    tweetId: tweetId,
+                                },
+                            },
+                        })];
+                    case 1:
+                        existingLike = _a.sent();
+                        if (!existingLike) return [3 /*break*/, 3];
+                        return [4 /*yield*/, db_1.prismaClient.like.delete({
+                                where: {
+                                    id: existingLike.id,
+                                },
+                            })];
+                    case 2:
+                        _a.sent();
+                        return [2 /*return*/, false];
+                    case 3: 
+                    // LIKE
+                    return [4 /*yield*/, db_1.prismaClient.like.create({
+                            data: {
+                                userId: userId,
+                                tweetId: tweetId,
+                            },
+                        })];
+                    case 4:
+                        // LIKE
                         _a.sent();
                         return [2 /*return*/, true];
                 }
