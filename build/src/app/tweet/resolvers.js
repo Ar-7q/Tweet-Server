@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -40,32 +51,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.resolvers = void 0;
-var db_1 = require("../../clients/db");
-var cloudinary_1 = __importDefault(require("../../services/cloudinary"));
+var user_1 = __importDefault(require("../../services/user"));
+var tweet_1 = __importDefault(require("../../services/tweet"));
 var queries = {
-    getAllTweets: function () {
-        return db_1.prismaClient.tweet.findMany({ orderBy: { createdAt: "desc" } });
-    },
+    getAllTweets: function () { return tweet_1.default.getAllTweets(); },
 };
 var mutations = {
     uploadImage: function (parent_1, _a, ctx_1) { return __awaiter(void 0, [parent_1, _a, ctx_1], void 0, function (parent, _b, ctx) {
-        var uploadedImage;
         var image = _b.image;
         return __generator(this, function (_c) {
-            switch (_c.label) {
-                case 0:
-                    if (!ctx.user || !ctx.user.id)
-                        throw new Error("Youre not authenticated");
-                    return [4 /*yield*/, cloudinary_1.default.uploader.upload(image, {
-                            folder: "ArpitBackend/tweets",
-                        })];
-                case 1:
-                    uploadedImage = _c.sent();
-                    return [2 /*return*/, {
-                            imageURL: uploadedImage.secure_url,
-                            imagePublicId: uploadedImage.public_id,
-                        }];
+            if (!ctx.user || !ctx.user.id) {
+                throw new Error("Youre not authenticated");
             }
+            return [2 /*return*/, tweet_1.default.uploadTweetImage(image)];
         });
     }); },
     createTweet: function (parent_1, _a, ctx_1) { return __awaiter(void 0, [parent_1, _a, ctx_1], void 0, function (parent, _b, ctx) {
@@ -76,18 +74,7 @@ var mutations = {
                 case 0:
                     if (!ctx.user)
                         throw new Error("Youre not authenticated");
-                    return [4 /*yield*/, db_1.prismaClient.tweet.create({
-                            data: {
-                                content: payload.content,
-                                imageURL: payload.imageURL,
-                                imagePublicId: payload.imagePublicId,
-                                author: {
-                                    connect: {
-                                        id: ctx.user.id,
-                                    },
-                                },
-                            },
-                        })];
+                    return [4 /*yield*/, tweet_1.default.createTweet(__assign(__assign({}, payload), { userId: ctx.user.id }))];
                 case 1:
                     tweet = _c.sent();
                     return [2 /*return*/, tweet];
@@ -95,53 +82,18 @@ var mutations = {
         });
     }); },
     deleteTweet: function (parent_1, _a, ctx_1) { return __awaiter(void 0, [parent_1, _a, ctx_1], void 0, function (parent, _b, ctx) {
-        var tweet;
         var tweetId = _b.tweetId;
         return __generator(this, function (_c) {
-            switch (_c.label) {
-                case 0:
-                    if (!ctx.user || !ctx.user.id) {
-                        throw new Error("Youre not authenticated");
-                    }
-                    return [4 /*yield*/, db_1.prismaClient.tweet.findUnique({
-                            where: {
-                                id: tweetId,
-                            },
-                        })];
-                case 1:
-                    tweet = _c.sent();
-                    if (!tweet) {
-                        throw new Error("Tweet not found");
-                    }
-                    // only owner can delete
-                    if (tweet.authorId !== ctx.user.id) {
-                        throw new Error("Unauthorized");
-                    }
-                    if (!tweet.imagePublicId) return [3 /*break*/, 3];
-                    return [4 /*yield*/, cloudinary_1.default.uploader.destroy(tweet.imagePublicId)];
-                case 2:
-                    _c.sent();
-                    _c.label = 3;
-                case 3: 
-                // delete tweet from db
-                return [4 /*yield*/, db_1.prismaClient.tweet.delete({
-                        where: {
-                            id: tweetId,
-                        },
-                    })];
-                case 4:
-                    // delete tweet from db
-                    _c.sent();
-                    return [2 /*return*/, true];
+            if (!ctx.user || !ctx.user.id) {
+                throw new Error("Youre not authenticated");
             }
+            return [2 /*return*/, tweet_1.default.deleteTweet(tweetId, ctx.user.id)];
         });
     }); },
 };
 var extraResolvers = {
     Tweet: {
-        author: function (parent) {
-            return db_1.prismaClient.user.findUnique({ where: { id: parent.authorId } });
-        },
+        author: function (parent) { return user_1.default.getUserById(parent.authorId); },
     },
 };
 exports.resolvers = { mutations: mutations, extraResolvers: extraResolvers, queries: queries };

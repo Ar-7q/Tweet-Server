@@ -40,63 +40,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.resolvers = void 0;
-var axios_1 = __importDefault(require("axios"));
 var db_1 = require("../../clients/db");
-var jwt_1 = __importDefault(require("../../services/jwt"));
+var user_1 = __importDefault(require("../../services/user"));
 var queries = {
     verifyGoogleToken: function (parent_1, _a) { return __awaiter(void 0, [parent_1, _a], void 0, function (parent, _b) {
-        var googleToken, googleOauthUrl, data, user, userIndb, userToken;
+        var resultToken;
         var token = _b.token;
         return __generator(this, function (_c) {
             switch (_c.label) {
-                case 0:
-                    googleToken = token;
-                    googleOauthUrl = new URL("https://oauth2.googleapis.com/tokeninfo");
-                    googleOauthUrl.searchParams.set("id_token", googleToken);
-                    return [4 /*yield*/, axios_1.default.get(googleOauthUrl.toString(), {
-                            responseType: "json",
-                        })];
+                case 0: return [4 /*yield*/, user_1.default.verifyGoogleAuthToken(token)];
                 case 1:
-                    data = (_c.sent()).data;
-                    return [4 /*yield*/, db_1.prismaClient.user.findUnique({
-                            where: { email: data.email },
-                        })];
-                case 2:
-                    user = _c.sent();
-                    if (!!user) return [3 /*break*/, 4];
-                    return [4 /*yield*/, db_1.prismaClient.user.create({
-                            data: {
-                                email: data.email,
-                                firstName: data.given_name,
-                                lastName: data.family_name,
-                                profileImageUrl: data.picture,
-                            },
-                        })];
-                case 3:
-                    _c.sent();
-                    return [3 /*break*/, 6];
-                case 4: return [4 /*yield*/, db_1.prismaClient.user.update({
-                        where: {
-                            email: data.email,
-                        },
-                        data: {
-                            profileImageUrl: data.picture,
-                        },
-                    })];
-                case 5:
-                    _c.sent();
-                    _c.label = 6;
-                case 6: return [4 /*yield*/, db_1.prismaClient.user.findUnique({
-                        where: { email: data.email },
-                    })];
-                case 7:
-                    userIndb = _c.sent();
-                    if (!userIndb)
-                        throw new Error("user with email not found");
-                    return [4 /*yield*/, jwt_1.default.generateTokenForUser(userIndb)];
-                case 8:
-                    userToken = _c.sent();
-                    return [2 /*return*/, userToken];
+                    resultToken = _c.sent();
+                    return [2 /*return*/, resultToken];
             }
         });
     }); },
@@ -109,7 +64,7 @@ var queries = {
                     id = (_a = ctx.user) === null || _a === void 0 ? void 0 : _a.id;
                     if (!id)
                         return [2 /*return*/, null];
-                    return [4 /*yield*/, db_1.prismaClient.user.findUnique({ where: { id: id } })];
+                    return [4 /*yield*/, user_1.default.getUserById(id)];
                 case 1:
                     user = _b.sent();
                     return [2 /*return*/, user];
@@ -119,9 +74,9 @@ var queries = {
     getUserById: function (parent_1, _a, ctx_1) { return __awaiter(void 0, [parent_1, _a, ctx_1], void 0, function (parent, _b, ctx) {
         var id = _b.id;
         return __generator(this, function (_c) {
-            return [2 /*return*/, db_1.prismaClient.user.findUnique({ where: { id: id } })];
+            return [2 /*return*/, user_1.default.getUserById(id)];
         });
-    }); },
+    }); }
 };
 var extraResolvers = {
     User: {

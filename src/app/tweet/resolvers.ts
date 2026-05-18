@@ -1,37 +1,24 @@
 import { Tweet } from "@prisma/client";
-
-import { prismaClient } from "../../clients/db";
 import { GraphqlContext } from "../../interfaces";
-import cloudinary from "../../services/cloudinary";
-
-interface CreateTweetPayload {
-  content: string;
-  imageURL?: string;
-  imagePublicId?: string;
-}
+import UserService from "../../services/user";
+import TweetService, { CreateTweetPayload } from "../../services/tweet";
 
 const queries = {
-  getAllTweets: () =>
-    prismaClient.tweet.findMany({ orderBy: { createdAt: "desc" } }),
+  getAllTweets: () => TweetService.getAllTweets(),
 };
 
 const mutations = {
   uploadImage: async (
-    parent: any,
-    { image }: { image: string },
-    ctx: GraphqlContext,
-  ) => {
-    if (!ctx.user || !ctx.user.id) throw new Error("Youre not authenticated");
+  parent: any,
+  { image }: { image: string },
+  ctx: GraphqlContext,
+) => {
+  if (!ctx.user || !ctx.user.id) {
+    throw new Error("Youre not authenticated");
+  }
 
-    const uploadedImage = await cloudinary.uploader.upload(image, {
-      folder: "ArpitBackend/tweets",
-    });
-
-    return {
-      imageURL: uploadedImage.secure_url,
-      imagePublicId: uploadedImage.public_id,
-    };
-  },
+  return TweetService.uploadTweetImage(image);
+},
 
   createTweet: async (
     parent: any,
@@ -39,18 +26,9 @@ const mutations = {
     ctx: GraphqlContext,
   ) => {
     if (!ctx.user) throw new Error("Youre not authenticated");
-    const tweet = await prismaClient.tweet.create({
-      data: {
-        content: payload.content,
-        imageURL: payload.imageURL,
-        imagePublicId: payload.imagePublicId,
-
-        author: {
-          connect: {
-            id: ctx.user.id,
-          },
-        },
-      },
+    const tweet = await TweetService.createTweet({
+      ...payload,
+      userId: ctx.user.id,
     });
     return tweet;
   },
@@ -64,41 +42,13 @@ const mutations = {
       throw new Error("Youre not authenticated");
     }
 
-    const tweet = await prismaClient.tweet.findUnique({
-      where: {
-        id: tweetId,
-      },
-    });
-
-    if (!tweet) {
-      throw new Error("Tweet not found");
-    }
-
-    // only owner can delete
-    if (tweet.authorId !== ctx.user.id) {
-      throw new Error("Unauthorized");
-    }
-
-    // delete image from cloudinary
-    if (tweet.imagePublicId) {
-      await cloudinary.uploader.destroy(tweet.imagePublicId);
-    }
-
-    // delete tweet from db
-    await prismaClient.tweet.delete({
-      where: {
-        id: tweetId,
-      },
-    });
-
-    return true;
+    return TweetService.deleteTweet(tweetId, ctx.user.id);
   },
 };
 
 const extraResolvers = {
   Tweet: {
-    author: (parent: Tweet) =>
-      prismaClient.user.findUnique({ where: { id: parent.authorId } }),
+    author: (parent: Tweet) => UserService.getUserById(parent.authorId),
   },
 };
 
