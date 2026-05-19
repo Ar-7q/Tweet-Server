@@ -152,6 +152,62 @@ var extraResolvers = {
                 },
             });
         },
+        recommendedUsers: function (parent, _, ctx) { return __awaiter(void 0, void 0, void 0, function () {
+            var myFollowings, recommendedUsers, _i, myFollowings_1, followings, _loop_1, _a, _b, followingOfFollowedUser;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
+                    case 0:
+                        if (!ctx.user)
+                            return [2 /*return*/, []];
+                        return [4 /*yield*/, db_1.prismaClient.follows.findMany({
+                                where: {
+                                    followerId: ctx.user.id,
+                                },
+                                include: {
+                                    following: {
+                                        include: {
+                                            followers: {
+                                                include: {
+                                                    follower: true,
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
+                            })];
+                    case 1:
+                        myFollowings = _c.sent();
+                        console.log("MY FOLLOWINGS:", myFollowings);
+                        recommendedUsers = [];
+                        for (_i = 0, myFollowings_1 = myFollowings; _i < myFollowings_1.length; _i++) {
+                            followings = myFollowings_1[_i];
+                            _loop_1 = function (followingOfFollowedUser) {
+                                var suggestedUser = followingOfFollowedUser.follower;
+                                console.log("CHECKING USER:", suggestedUser);
+                                // skip self
+                                if (suggestedUser.id === ctx.user.id) {
+                                    return "continue";
+                                }
+                                // skip already followed users
+                                if (myFollowings.findIndex(function (e) { return e.followingId === suggestedUser.id; }) >=
+                                    0) {
+                                    return "continue";
+                                }
+                                // avoid duplicates
+                                if (recommendedUsers.findIndex(function (u) { return u.id === suggestedUser.id; }) >= 0) {
+                                    return "continue";
+                                }
+                                recommendedUsers.push(suggestedUser);
+                            };
+                            for (_a = 0, _b = followings.following.followers; _a < _b.length; _a++) {
+                                followingOfFollowedUser = _b[_a];
+                                _loop_1(followingOfFollowedUser);
+                            }
+                        }
+                        return [2 /*return*/, recommendedUsers];
+                }
+            });
+        }); },
     },
 };
 exports.resolvers = { queries: queries, mutations: mutations, extraResolvers: extraResolvers };
