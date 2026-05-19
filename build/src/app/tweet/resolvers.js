@@ -53,7 +53,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.resolvers = void 0;
 var user_1 = __importDefault(require("../../services/user"));
 var tweet_1 = __importDefault(require("../../services/tweet"));
-var db_1 = require("../../clients/db");
 var queries = {
     getAllTweets: function () { return tweet_1.default.getAllTweets(); },
 };
@@ -121,18 +120,7 @@ var mutations = {
 };
 var extraResolvers = {
     Tweet: {
-        author: function (parent) { return user_1.default.getUserById(parent.authorId); },
         likesCount: function (parent) { return parent._count.likes; },
-        comments: function (parent) {
-            return db_1.prismaClient.comment.findMany({
-                where: {
-                    tweetId: parent.id,
-                },
-                orderBy: {
-                    createdAt: "desc",
-                },
-            });
-        },
     },
     Comment: {
         author: function (parent) { return user_1.default.getUserById(parent.authorId); },

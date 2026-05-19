@@ -71,7 +71,49 @@ class UserService {
   }
 
   public static getUserById(id: string) {
-    return prismaClient.user.findUnique({ where: { id } });
+    return prismaClient.user.findUnique({
+      where: { id },
+
+      include: {
+        followers: {
+          include: {
+            follower: true,
+          },
+        },
+
+        following: {
+          include: {
+            following: true,
+          },
+        },
+
+        tweets: {
+          include: {
+            author: true,
+
+            comments: {
+              include: {
+                author: true,
+              },
+
+              orderBy: {
+                createdAt: "desc",
+              },
+            },
+
+            _count: {
+              select: {
+                likes: true,
+              },
+            },
+          },
+
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
+      },
+    });
   }
 }
 

@@ -76,13 +76,82 @@ var queries = {
         return __generator(this, function (_c) {
             return [2 /*return*/, user_1.default.getUserById(id)];
         });
-    }); }
+    }); },
+};
+var mutations = {
+    followUser: function (parent_1, _a, ctx_1) { return __awaiter(void 0, [parent_1, _a, ctx_1], void 0, function (parent, _b, ctx) {
+        var follow;
+        var _c;
+        var to = _b.to;
+        return __generator(this, function (_d) {
+            switch (_d.label) {
+                case 0:
+                    if (!((_c = ctx.user) === null || _c === void 0 ? void 0 : _c.id)) {
+                        throw new Error("Not authenticated");
+                    }
+                    if (ctx.user.id === to) {
+                        throw new Error("Cannot follow yourself");
+                    }
+                    return [4 /*yield*/, db_1.prismaClient.follows.create({
+                            data: {
+                                followerId: ctx.user.id,
+                                followingId: to,
+                            },
+                        })];
+                case 1:
+                    follow = _d.sent();
+                    return [2 /*return*/, !!follow];
+            }
+        });
+    }); },
+    unfollowUser: function (parent_1, _a, ctx_1) { return __awaiter(void 0, [parent_1, _a, ctx_1], void 0, function (parent, _b, ctx) {
+        var unfollow;
+        var _c;
+        var to = _b.to;
+        return __generator(this, function (_d) {
+            switch (_d.label) {
+                case 0:
+                    if (!((_c = ctx.user) === null || _c === void 0 ? void 0 : _c.id)) {
+                        throw new Error("Not authenticated");
+                    }
+                    return [4 /*yield*/, db_1.prismaClient.follows.delete({
+                            where: {
+                                followerId_followingId: {
+                                    followerId: ctx.user.id,
+                                    followingId: to,
+                                },
+                            },
+                        })];
+                case 1:
+                    unfollow = _d.sent();
+                    return [2 /*return*/, !!unfollow];
+            }
+        });
+    }); },
 };
 var extraResolvers = {
     User: {
-        tweets: function (parent) {
-            return db_1.prismaClient.tweet.findMany({ where: { author: { id: parent.id } } });
+        tweets: function (parent) { return parent.tweets; },
+        followers: function (parent) {
+            return db_1.prismaClient.follows.findMany({
+                where: {
+                    followingId: parent.id,
+                },
+                include: {
+                    follower: true,
+                },
+            });
+        },
+        following: function (parent) {
+            return db_1.prismaClient.follows.findMany({
+                where: {
+                    followerId: parent.id,
+                },
+                include: {
+                    following: true,
+                },
+            });
         },
     },
 };
-exports.resolvers = { queries: queries, extraResolvers: extraResolvers };
+exports.resolvers = { queries: queries, mutations: mutations, extraResolvers: extraResolvers };

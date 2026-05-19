@@ -22,12 +22,26 @@ class TweetService {
 
   public static getAllTweets() {
     return prismaClient.tweet.findMany({
-      orderBy: { createdAt: "desc" },
+      orderBy: {
+        createdAt: "desc",
+      },
 
       include: {
         _count: {
           select: {
             likes: true,
+          },
+        },
+
+        author: true,
+
+        comments: {
+          include: {
+            author: true,
+          },
+
+          orderBy: {
+            createdAt: "desc",
           },
         },
       },
@@ -65,6 +79,20 @@ class TweetService {
     if (tweet.imagePublicId) {
       await cloudinary.uploader.destroy(tweet.imagePublicId);
     }
+
+    // delete likes first
+    await prismaClient.like.deleteMany({
+      where: {
+        tweetId: tweetId,
+      },
+    });
+
+    // delete comments
+    await prismaClient.comment.deleteMany({
+      where: {
+        tweetId: tweetId,
+      },
+    });
 
     // delete tweet from db
     await prismaClient.tweet.delete({

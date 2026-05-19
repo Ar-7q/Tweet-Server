@@ -85,18 +85,7 @@ const mutations = {
 
 const extraResolvers = {
   Tweet: {
-    author: (parent: Tweet) => UserService.getUserById(parent.authorId),
     likesCount: (parent: any) => parent._count.likes,
-    comments: (parent: any) => {
-      return prismaClient.comment.findMany({
-        where: {
-          tweetId: parent.id,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      });
-    },
   },
   Comment: {
     author: (parent: any) => UserService.getUserById(parent.authorId),

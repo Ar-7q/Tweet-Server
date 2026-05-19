@@ -75,8 +75,8 @@ function initServer() {
                     }));
                     app.use((0, cors_1.default)());
                     graphqlServer = new server_1.ApolloServer({
-                        typeDefs: "\n        ".concat(user_1.User.types, "\n        ").concat(tweet_1.Tweet.types, "\n\n        type Query {\n          ").concat(user_1.User.queries, "\n          ").concat(tweet_1.Tweet.queries, "\n        }\n\n        type Mutation {\n          ").concat(tweet_1.Tweet.mutations, "\n        }\n      "),
-                        resolvers: __assign(__assign({ Query: __assign(__assign({}, user_1.User.resolvers.queries), tweet_1.Tweet.resolvers.queries), Mutation: __assign({}, tweet_1.Tweet.resolvers.mutations) }, tweet_1.Tweet.resolvers.extraResolvers), user_1.User.resolvers.extraResolvers),
+                        typeDefs: "\n        ".concat(user_1.User.types, "\n        ").concat(tweet_1.Tweet.types, "\n\n        type Query {\n          ").concat(user_1.User.queries, "\n          ").concat(tweet_1.Tweet.queries, "\n        }\n\n        type Mutation {\n          ").concat(user_1.User.mutations, "\n          ").concat(tweet_1.Tweet.mutations, "\n        }\n      "),
+                        resolvers: __assign(__assign({ Query: __assign(__assign({}, user_1.User.resolvers.queries), tweet_1.Tweet.resolvers.queries), Mutation: __assign(__assign({}, user_1.User.resolvers.mutations), tweet_1.Tweet.resolvers.mutations) }, tweet_1.Tweet.resolvers.extraResolvers), user_1.User.resolvers.extraResolvers),
                     });
                     return [4 /*yield*/, graphqlServer.start()];
                 case 1:

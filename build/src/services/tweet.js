@@ -56,11 +56,22 @@ var TweetService = /** @class */ (function () {
     };
     TweetService.getAllTweets = function () {
         return db_1.prismaClient.tweet.findMany({
-            orderBy: { createdAt: "desc" },
+            orderBy: {
+                createdAt: "desc",
+            },
             include: {
                 _count: {
                     select: {
                         likes: true,
+                    },
+                },
+                author: true,
+                comments: {
+                    include: {
+                        author: true,
+                    },
+                    orderBy: {
+                        createdAt: "desc",
                     },
                 },
             },
@@ -109,13 +120,31 @@ var TweetService = /** @class */ (function () {
                         _a.sent();
                         _a.label = 3;
                     case 3: 
-                    // delete tweet from db
-                    return [4 /*yield*/, db_1.prismaClient.tweet.delete({
+                    // delete likes first
+                    return [4 /*yield*/, db_1.prismaClient.like.deleteMany({
                             where: {
-                                id: tweetId,
+                                tweetId: tweetId,
                             },
                         })];
                     case 4:
+                        // delete likes first
+                        _a.sent();
+                        // delete comments
+                        return [4 /*yield*/, db_1.prismaClient.comment.deleteMany({
+                                where: {
+                                    tweetId: tweetId,
+                                },
+                            })];
+                    case 5:
+                        // delete comments
+                        _a.sent();
+                        // delete tweet from db
+                        return [4 /*yield*/, db_1.prismaClient.tweet.delete({
+                                where: {
+                                    id: tweetId,
+                                },
+                            })];
+                    case 6:
                         // delete tweet from db
                         _a.sent();
                         return [2 /*return*/, true];

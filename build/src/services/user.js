@@ -103,7 +103,42 @@ var UserService = /** @class */ (function () {
         });
     };
     UserService.getUserById = function (id) {
-        return db_1.prismaClient.user.findUnique({ where: { id: id } });
+        return db_1.prismaClient.user.findUnique({
+            where: { id: id },
+            include: {
+                followers: {
+                    include: {
+                        follower: true,
+                    },
+                },
+                following: {
+                    include: {
+                        following: true,
+                    },
+                },
+                tweets: {
+                    include: {
+                        author: true,
+                        comments: {
+                            include: {
+                                author: true,
+                            },
+                            orderBy: {
+                                createdAt: "desc",
+                            },
+                        },
+                        _count: {
+                            select: {
+                                likes: true,
+                            },
+                        },
+                    },
+                    orderBy: {
+                        createdAt: "desc",
+                    },
+                },
+            },
+        });
     };
     return UserService;
 }());

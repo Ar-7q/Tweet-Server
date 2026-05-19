@@ -1,4 +1,4 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.types = void 0;
-exports.types = "#graphql\n  type User {\n    id: ID!\n    firstName: String!\n    lastName: String\n    email: String!\n    profileImageUrl: String\n\n    tweets:[Tweet]\n  }\n";
+exports.types = "#graphql\n  type User {\n    id: ID!\n    firstName: String!\n    lastName: String\n    email: String!\n    profileImageUrl: String\n\n    tweets:[Tweet]\n\n    followers:[Follows]\n    following:[Follows]\n  }\n\n  type Follows {\n    id: ID!\n\n    follower: User\n    following: User\n  }\n";
