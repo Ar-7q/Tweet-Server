@@ -72,6 +72,10 @@ const mutations = {
 
     return !!unfollow;
   },
+
+  logoutUser: async (parent: any, args: any, ctx: GraphqlContext) => {
+    return true;
+  },
 };
 
 const extraResolvers = {
@@ -129,7 +133,7 @@ const extraResolvers = {
         for (const followingOfFollowedUser of followings.following.followers) {
           const suggestedUser = followingOfFollowedUser.follower;
 
-          console.log("CHECKING USER:", suggestedUser);
+          
 
           // skip self
           if (suggestedUser.id === ctx.user.id) {
@@ -154,8 +158,6 @@ const extraResolvers = {
           recommendedUsers.push(suggestedUser);
         }
       }
-
-      
 
       return recommendedUsers;
     },

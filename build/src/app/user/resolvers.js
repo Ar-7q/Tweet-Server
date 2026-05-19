@@ -128,6 +128,11 @@ var mutations = {
             }
         });
     }); },
+    logoutUser: function (parent, args, ctx) { return __awaiter(void 0, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            return [2 /*return*/, true];
+        });
+    }); },
 };
 var extraResolvers = {
     User: {
