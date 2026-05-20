@@ -182,13 +182,11 @@ var extraResolvers = {
                             })];
                     case 1:
                         myFollowings = _c.sent();
-                        console.log("MY FOLLOWINGS:", myFollowings);
                         recommendedUsers = [];
                         for (_i = 0, myFollowings_1 = myFollowings; _i < myFollowings_1.length; _i++) {
                             followings = myFollowings_1[_i];
                             _loop_1 = function (followingOfFollowedUser) {
                                 var suggestedUser = followingOfFollowedUser.follower;
-                                console.log("CHECKING USER:", suggestedUser);
                                 // skip self
                                 if (suggestedUser.id === ctx.user.id) {
                                     return "continue";

@@ -125,7 +125,7 @@ const extraResolvers = {
         },
       });
 
-      console.log("MY FOLLOWINGS:", myFollowings);
+      
 
       const recommendedUsers: User[] = [];
 
