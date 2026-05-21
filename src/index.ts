@@ -1,13 +1,14 @@
-import { initServer } from "./app"
-import * as dotenv from 'dotenv'
+import { initServer } from "./app";
+import * as dotenv from "dotenv";
 
-dotenv.config()
-
+dotenv.config();
 
 async function init() {
-    const app = await initServer()
-    app.listen(7000 ,()=> console.log(`Server started at port:7000`))
-    
+  const httpServer = await initServer();
+
+  httpServer.listen(7000, () => {
+    console.log("Server started at port:7000");
+  });
 }
 
-init()
+init();

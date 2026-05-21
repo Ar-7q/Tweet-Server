@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "types": ["node"],
-    "module": "commonjs",
+    "module": "Node16",
+    "moduleResolution": "node16",
     "rootDir": "./",
     "outDir": "./build",
     "esModuleInterop": true,

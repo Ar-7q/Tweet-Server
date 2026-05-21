@@ -3,6 +3,7 @@ import { GraphqlContext } from "../../interfaces";
 import UserService from "../../services/user";
 import TweetService, { CreateTweetPayload } from "../../services/tweet";
 import { prismaClient } from "../../clients/db";
+import { pubsub } from "../../graphql/pubsub";
 
 const queries = {
   getAllTweets: () => TweetService.getAllTweets(),
@@ -31,6 +32,11 @@ const mutations = {
       ...payload,
       userId: ctx.user.id,
     });
+
+    await pubsub.publish("TWEET_CREATED", {
+      tweetCreated: tweet,
+    });
+
     return tweet;
   },
 
@@ -43,7 +49,15 @@ const mutations = {
       throw new Error("Youre not authenticated");
     }
 
-    return TweetService.deleteTweet(tweetId, ctx.user.id);
+    const deletedTweet = await TweetService.deleteTweet(tweetId, ctx.user.id);
+
+    await pubsub.publish("TWEET_DELETED", {
+      tweetDeleted: {
+        tweetId,
+      },
+    });
+
+    return deletedTweet;
   },
 
   toggleLike: async (
@@ -55,7 +69,22 @@ const mutations = {
       throw new Error("You need to sign in for liking");
     }
 
-    return TweetService.toggleLike(tweetId, ctx.user.id);
+    const updatedTweet = await TweetService.toggleLike(tweetId, ctx.user.id);
+
+    const likesCount = await prismaClient.like.count({
+      where: {
+        tweetId,
+      },
+    });
+
+    await pubsub.publish("TWEET_LIKED", {
+      tweetLiked: {
+        tweetId,
+        likesCount,
+      },
+    });
+
+    return updatedTweet;
   },
 
   createComment: async (
@@ -67,7 +96,20 @@ const mutations = {
       throw new Error("Unauthorized");
     }
 
-    return TweetService.createComment(tweetId, content, ctx.user.id);
+    const comment = await TweetService.createComment(
+      tweetId,
+      content,
+      ctx.user.id,
+    );
+
+    await pubsub.publish("COMMENT_ADDED", {
+      commentAdded: {
+        tweetId,
+        comment,
+      },
+    });
+
+    return comment;
   },
 
   deleteComment: async (
@@ -79,7 +121,25 @@ const mutations = {
       throw new Error("Unauthorized");
     }
 
-    return TweetService.deleteComment(commentId, ctx.user.id);
+    const comment = await prismaClient.comment.findUnique({
+      where: {
+        id: commentId,
+      },
+    });
+
+    const deletedComment = await TweetService.deleteComment(
+      commentId,
+      ctx.user.id,
+    );
+
+    await pubsub.publish("COMMENT_DELETED", {
+      commentDeleted: {
+        tweetId: comment?.tweetId,
+        commentId,
+      },
+    });
+
+    return deletedComment;
   },
 };
 

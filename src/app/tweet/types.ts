@@ -31,7 +31,24 @@ export const types = `#graphql
         comments:[Comment]
     }
 
-    type Mutation {
-        toggleLike(tweetId:String!):Boolean
-    }
+   
+
+   type CommentEvent {
+  tweetId: String!
+  comment: Comment!
+}
+
+type CommentDeleteEvent {
+  tweetId: String!
+  commentId: String!
+}
+
+type TweetLikeEvent {
+  tweetId: String!
+  likesCount: Int!
+}
+
+type TweetDeleteEvent {
+  tweetId: String!
+}
 `;

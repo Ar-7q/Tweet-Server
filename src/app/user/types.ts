@@ -20,4 +20,10 @@ export const types = `#graphql
     follower: User
     following: User
   }
+
+ type FollowEvent {
+  userId: ID!
+  followerId: ID!
+  type: String!
+}
 `;

@@ -6,6 +6,7 @@ import { GraphqlContext } from "../../interfaces";
 
 import { User } from "@prisma/client";
 import UserService from "../../services/user";
+import { pubsub } from "../../graphql/pubsub";
 
 const queries = {
   verifyGoogleToken: async (parent: any, { token }: { token: string }) => {
@@ -49,6 +50,14 @@ const mutations = {
       },
     });
 
+    await pubsub.publish("USER_FOLLOWED", {
+      userFollowed: {
+        userId: to,
+        followerId: ctx.user.id,
+        type: "follow",
+      },
+    });
+
     return !!follow;
   },
 
@@ -67,6 +76,14 @@ const mutations = {
           followerId: ctx.user.id,
           followingId: to,
         },
+      },
+    });
+
+    await pubsub.publish("USER_FOLLOWED", {
+      userFollowed: {
+        userId: to,
+        followerId: ctx.user.id,
+        type: "unfollow",
       },
     });
 
@@ -125,15 +142,11 @@ const extraResolvers = {
         },
       });
 
-      
-
       const recommendedUsers: User[] = [];
 
       for (const followings of myFollowings) {
         for (const followingOfFollowedUser of followings.following.followers) {
           const suggestedUser = followingOfFollowedUser.follower;
-
-          
 
           // skip self
           if (suggestedUser.id === ctx.user.id) {
