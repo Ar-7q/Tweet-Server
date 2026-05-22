@@ -4,6 +4,7 @@ import UserService from "../../services/user";
 import TweetService, { CreateTweetPayload } from "../../services/tweet";
 import { prismaClient } from "../../clients/db";
 import { pubsub } from "../../graphql/pubsub";
+import { redis } from "../../clients/redis";
 
 const queries = {
   getAllTweets: () => TweetService.getAllTweets(),
@@ -33,6 +34,9 @@ const mutations = {
       userId: ctx.user.id,
     });
 
+    await redis.del("tweets:feed");
+    await redis.del(`user:${ctx.user.id}`);
+
     await pubsub.publish("TWEET_CREATED", {
       tweetCreated: tweet,
     });
@@ -50,6 +54,8 @@ const mutations = {
     }
 
     const deletedTweet = await TweetService.deleteTweet(tweetId, ctx.user.id);
+    await redis.del("tweets:feed");
+    await redis.del(`user:${ctx.user.id}`);
 
     await pubsub.publish("TWEET_DELETED", {
       tweetDeleted: {
@@ -70,6 +76,8 @@ const mutations = {
     }
 
     const updatedTweet = await TweetService.toggleLike(tweetId, ctx.user.id);
+    await redis.del("tweets:feed");
+    await redis.del(`user:${ctx.user.id}`);
 
     const likesCount = await prismaClient.like.count({
       where: {
@@ -101,6 +109,8 @@ const mutations = {
       content,
       ctx.user.id,
     );
+    await redis.del("tweets:feed");
+    await redis.del(`user:${ctx.user.id}`);
 
     await pubsub.publish("COMMENT_ADDED", {
       commentAdded: {
@@ -131,6 +141,9 @@ const mutations = {
       commentId,
       ctx.user.id,
     );
+
+    await redis.del("tweets:feed");
+    await redis.del(`user:${ctx.user.id}`);
 
     await pubsub.publish("COMMENT_DELETED", {
       commentDeleted: {

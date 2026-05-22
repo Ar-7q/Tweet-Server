@@ -8,6 +8,7 @@ const user_1 = __importDefault(require("../../services/user"));
 const tweet_1 = __importDefault(require("../../services/tweet"));
 const db_1 = require("../../clients/db");
 const pubsub_1 = require("../../graphql/pubsub");
+const redis_1 = require("../../clients/redis");
 const queries = {
     getAllTweets: () => tweet_1.default.getAllTweets(),
 };
@@ -25,6 +26,8 @@ const mutations = {
             ...payload,
             userId: ctx.user.id,
         });
+        await redis_1.redis.del("tweets:feed");
+        await redis_1.redis.del(`user:${ctx.user.id}`);
         await pubsub_1.pubsub.publish("TWEET_CREATED", {
             tweetCreated: tweet,
         });
@@ -35,6 +38,8 @@ const mutations = {
             throw new Error("Youre not authenticated");
         }
         const deletedTweet = await tweet_1.default.deleteTweet(tweetId, ctx.user.id);
+        await redis_1.redis.del("tweets:feed");
+        await redis_1.redis.del(`user:${ctx.user.id}`);
         await pubsub_1.pubsub.publish("TWEET_DELETED", {
             tweetDeleted: {
                 tweetId,
@@ -47,6 +52,8 @@ const mutations = {
             throw new Error("You need to sign in for liking");
         }
         const updatedTweet = await tweet_1.default.toggleLike(tweetId, ctx.user.id);
+        await redis_1.redis.del("tweets:feed");
+        await redis_1.redis.del(`user:${ctx.user.id}`);
         const likesCount = await db_1.prismaClient.like.count({
             where: {
                 tweetId,
@@ -65,6 +72,8 @@ const mutations = {
             throw new Error("Unauthorized");
         }
         const comment = await tweet_1.default.createComment(tweetId, content, ctx.user.id);
+        await redis_1.redis.del("tweets:feed");
+        await redis_1.redis.del(`user:${ctx.user.id}`);
         await pubsub_1.pubsub.publish("COMMENT_ADDED", {
             commentAdded: {
                 tweetId,
@@ -83,6 +92,8 @@ const mutations = {
             },
         });
         const deletedComment = await tweet_1.default.deleteComment(commentId, ctx.user.id);
+        await redis_1.redis.del("tweets:feed");
+        await redis_1.redis.del(`user:${ctx.user.id}`);
         await pubsub_1.pubsub.publish("COMMENT_DELETED", {
             commentDeleted: {
                 tweetId: comment?.tweetId,

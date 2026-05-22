@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const db_1 = require("../clients/db");
+const redis_1 = require("../clients/redis");
 const cloudinary_1 = __importDefault(require("./cloudinary"));
 class TweetService {
     static createTweet(data) {
@@ -16,8 +17,15 @@ class TweetService {
             },
         });
     }
-    static getAllTweets() {
-        return db_1.prismaClient.tweet.findMany({
+    static async getAllTweets() {
+        // CHECK CACHE
+        const cachedTweets = await redis_1.redis.get("tweets:feed");
+        if (cachedTweets) {
+            console.log("TWEETS CACHE HIT");
+            return JSON.parse(cachedTweets);
+        }
+        console.log("TWEETS CACHE MISS");
+        const tweets = await db_1.prismaClient.tweet.findMany({
             orderBy: {
                 createdAt: "desc",
             },
@@ -38,6 +46,9 @@ class TweetService {
                 },
             },
         });
+        // STORE CACHE
+        await redis_1.redis.set("tweets:feed", JSON.stringify(tweets), "EX", 120);
+        return tweets;
     }
     static async uploadTweetImage(image) {
         const uploadedImage = await cloudinary_1.default.uploader.upload(image, {

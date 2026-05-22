@@ -1,6 +1,7 @@
 import axios from "axios";
 import { prismaClient } from "../clients/db";
 import JWTService from "./jwt";
+import { redis } from "../clients/redis";
 
 interface GoogleTokenRes {
   iss?: string;
@@ -70,8 +71,19 @@ class UserService {
     // return "ok";
   }
 
-  public static getUserById(id: string) {
-    return prismaClient.user.findUnique({
+  public static async getUserById(id: string) {
+    // CHECK CACHE
+    const cachedUser = await redis.get(`user:${id}`);
+
+    if (cachedUser) {
+      console.log("USER CACHE HIT");
+
+      return JSON.parse(cachedUser);
+    }
+
+    console.log("USER CACHE MISS");
+
+    const user = await prismaClient.user.findUnique({
       where: { id },
 
       include: {
@@ -114,6 +126,13 @@ class UserService {
         },
       },
     });
+
+    // STORE CACHE
+    if (user) {
+      await redis.set(`user:${id}`, JSON.stringify(user), "EX", 300);
+    }
+
+    return user;
   }
 }
 

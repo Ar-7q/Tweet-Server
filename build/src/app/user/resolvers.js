@@ -7,6 +7,7 @@ exports.resolvers = void 0;
 const db_1 = require("../../clients/db");
 const user_1 = __importDefault(require("../../services/user"));
 const pubsub_1 = require("../../graphql/pubsub");
+const redis_1 = require("../../clients/redis");
 const queries = {
     verifyGoogleToken: async (parent, { token }) => {
         const resultToken = await user_1.default.verifyGoogleAuthToken(token);
@@ -36,6 +37,8 @@ const mutations = {
                 followingId: to,
             },
         });
+        await redis_1.redis.del(`user:${to}`);
+        await redis_1.redis.del(`user:${ctx.user.id}`);
         await pubsub_1.pubsub.publish("USER_FOLLOWED", {
             userFollowed: {
                 userId: to,
@@ -57,6 +60,8 @@ const mutations = {
                 },
             },
         });
+        await redis_1.redis.del(`user:${to}`);
+        await redis_1.redis.del(`user:${ctx.user.id}`);
         await pubsub_1.pubsub.publish("USER_FOLLOWED", {
             userFollowed: {
                 userId: to,

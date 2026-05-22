@@ -7,6 +7,7 @@ import { GraphqlContext } from "../../interfaces";
 import { User } from "@prisma/client";
 import UserService from "../../services/user";
 import { pubsub } from "../../graphql/pubsub";
+import { redis } from "../../clients/redis";
 
 const queries = {
   verifyGoogleToken: async (parent: any, { token }: { token: string }) => {
@@ -50,6 +51,9 @@ const mutations = {
       },
     });
 
+    await redis.del(`user:${to}`);
+    await redis.del(`user:${ctx.user.id}`);
+
     await pubsub.publish("USER_FOLLOWED", {
       userFollowed: {
         userId: to,
@@ -78,6 +82,9 @@ const mutations = {
         },
       },
     });
+
+    await redis.del(`user:${to}`);
+    await redis.del(`user:${ctx.user.id}`);
 
     await pubsub.publish("USER_FOLLOWED", {
       userFollowed: {

@@ -33,10 +33,17 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-const app_1 = require("./app");
 const dotenv = __importStar(require("dotenv"));
 dotenv.config();
+const app_1 = require("./app");
+const redis_1 = require("./clients/redis");
+async function testRedis() {
+    await redis_1.redis.set("test", "hello");
+    const data = await redis_1.redis.get("test");
+    console.log(data);
+}
 async function init() {
+    await testRedis();
     const httpServer = await (0, app_1.initServer)();
     httpServer.listen(7000, () => {
         console.log("Server started at port:7000");

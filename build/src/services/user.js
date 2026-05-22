@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const axios_1 = __importDefault(require("axios"));
 const db_1 = require("../clients/db");
 const jwt_1 = __importDefault(require("./jwt"));
+const redis_1 = require("../clients/redis");
 class UserService {
     static async verifyGoogleAuthToken(token) {
         const googleToken = token;
@@ -47,8 +48,15 @@ class UserService {
         return userToken;
         // return "ok";
     }
-    static getUserById(id) {
-        return db_1.prismaClient.user.findUnique({
+    static async getUserById(id) {
+        // CHECK CACHE
+        const cachedUser = await redis_1.redis.get(`user:${id}`);
+        if (cachedUser) {
+            console.log("USER CACHE HIT");
+            return JSON.parse(cachedUser);
+        }
+        console.log("USER CACHE MISS");
+        const user = await db_1.prismaClient.user.findUnique({
             where: { id },
             include: {
                 followers: {
@@ -84,6 +92,11 @@ class UserService {
                 },
             },
         });
+        // STORE CACHE
+        if (user) {
+            await redis_1.redis.set(`user:${id}`, JSON.stringify(user), "EX", 300);
+        }
+        return user;
     }
 }
 exports.default = UserService;

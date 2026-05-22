@@ -1,4 +1,5 @@
 import { prismaClient } from "../clients/db";
+import { redis } from "../clients/redis";
 import cloudinary from "./cloudinary";
 
 export interface CreateTweetPayload {
@@ -20,8 +21,19 @@ class TweetService {
     });
   }
 
-  public static getAllTweets() {
-    return prismaClient.tweet.findMany({
+  public static async getAllTweets() {
+    // CHECK CACHE
+    const cachedTweets = await redis.get("tweets:feed");
+
+    if (cachedTweets) {
+      console.log("TWEETS CACHE HIT");
+
+      return JSON.parse(cachedTweets);
+    }
+
+    console.log("TWEETS CACHE MISS");
+
+    const tweets = await prismaClient.tweet.findMany({
       orderBy: {
         createdAt: "desc",
       },
@@ -46,6 +58,11 @@ class TweetService {
         },
       },
     });
+
+    // STORE CACHE
+    await redis.set("tweets:feed", JSON.stringify(tweets), "EX", 120);
+
+    return tweets;
   }
 
   public static async uploadTweetImage(image: string) {

@@ -31,8 +31,6 @@ export const types = `#graphql
         comments:[Comment]
     }
 
-   
-
    type CommentEvent {
   tweetId: String!
   comment: Comment!
