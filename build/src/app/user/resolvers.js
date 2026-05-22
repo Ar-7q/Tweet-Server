@@ -8,6 +8,7 @@ const db_1 = require("../../clients/db");
 const user_1 = __importDefault(require("../../services/user"));
 const pubsub_1 = require("../../graphql/pubsub");
 const redis_1 = require("../../clients/redis");
+const rateLimit_1 = require("../../services/rateLimit");
 const queries = {
     verifyGoogleToken: async (parent, { token }) => {
         const resultToken = await user_1.default.verifyGoogleAuthToken(token);
@@ -31,12 +32,20 @@ const mutations = {
         if (ctx.user.id === to) {
             throw new Error("Cannot follow yourself");
         }
-        const follow = await db_1.prismaClient.follows.create({
-            data: {
-                followerId: ctx.user.id,
-                followingId: to,
-            },
-        });
+        await (0, rateLimit_1.rateLimit)(`follow:${ctx.user.id}`, 15, 30);
+        let follow = null;
+        try {
+            follow = await db_1.prismaClient.follows.create({
+                data: {
+                    followerId: ctx.user.id,
+                    followingId: to,
+                },
+            });
+        }
+        catch (error) {
+            console.log("FOLLOW SKIPPED");
+            return false;
+        }
         await redis_1.redis.del(`user:${to}`);
         await redis_1.redis.del(`user:${ctx.user.id}`);
         await pubsub_1.pubsub.publish("USER_FOLLOWED", {
@@ -52,14 +61,22 @@ const mutations = {
         if (!ctx.user?.id) {
             throw new Error("Not authenticated");
         }
-        const unfollow = await db_1.prismaClient.follows.delete({
-            where: {
-                followerId_followingId: {
-                    followerId: ctx.user.id,
-                    followingId: to,
+        await (0, rateLimit_1.rateLimit)(`unfollow:${ctx.user.id}`, 15, 30);
+        let unfollow = null;
+        try {
+            unfollow = await db_1.prismaClient.follows.delete({
+                where: {
+                    followerId_followingId: {
+                        followerId: ctx.user.id,
+                        followingId: to,
+                    },
                 },
-            },
-        });
+            });
+        }
+        catch (error) {
+            console.log("UNFOLLOW SKIPPED");
+            return false;
+        }
         await redis_1.redis.del(`user:${to}`);
         await redis_1.redis.del(`user:${ctx.user.id}`);
         await pubsub_1.pubsub.publish("USER_FOLLOWED", {

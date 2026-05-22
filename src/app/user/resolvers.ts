@@ -1,13 +1,12 @@
-import axios from "axios";
 import { prismaClient } from "../../clients/db";
-import JWTService from "../../services/jwt";
-import { error } from "node:console";
+
 import { GraphqlContext } from "../../interfaces";
 
 import { User } from "@prisma/client";
 import UserService from "../../services/user";
 import { pubsub } from "../../graphql/pubsub";
 import { redis } from "../../clients/redis";
+import { rateLimit } from "../../services/rateLimit";
 
 const queries = {
   verifyGoogleToken: async (parent: any, { token }: { token: string }) => {
@@ -44,12 +43,21 @@ const mutations = {
       throw new Error("Cannot follow yourself");
     }
 
-    const follow = await prismaClient.follows.create({
-      data: {
-        followerId: ctx.user.id,
-        followingId: to,
-      },
-    });
+    await rateLimit(`follow:${ctx.user.id}`, 15, 30);
+    let follow = null;
+
+    try {
+      follow = await prismaClient.follows.create({
+        data: {
+          followerId: ctx.user.id,
+          followingId: to,
+        },
+      });
+    } catch (error) {
+      console.log("FOLLOW SKIPPED");
+
+      return false;
+    }
 
     await redis.del(`user:${to}`);
     await redis.del(`user:${ctx.user.id}`);
@@ -73,15 +81,23 @@ const mutations = {
     if (!ctx.user?.id) {
       throw new Error("Not authenticated");
     }
+    await rateLimit(`unfollow:${ctx.user.id}`, 15, 30);
+    let unfollow = null;
 
-    const unfollow = await prismaClient.follows.delete({
-      where: {
-        followerId_followingId: {
-          followerId: ctx.user.id,
-          followingId: to,
+    try {
+      unfollow = await prismaClient.follows.delete({
+        where: {
+          followerId_followingId: {
+            followerId: ctx.user.id,
+            followingId: to,
+          },
         },
-      },
-    });
+      });
+    } catch (error) {
+      console.log("UNFOLLOW SKIPPED");
+
+      return false;
+    }
 
     await redis.del(`user:${to}`);
     await redis.del(`user:${ctx.user.id}`);

@@ -89,40 +89,52 @@ class TweetService {
             },
         });
         // delete tweet from db
-        await db_1.prismaClient.tweet.delete({
-            where: {
-                id: tweetId,
-            },
-        });
-        return true;
+        try {
+            await db_1.prismaClient.tweet.delete({
+                where: {
+                    id: tweetId,
+                },
+            });
+            return true;
+        }
+        catch (error) {
+            console.log("TWEET ALREADY DELETED");
+            return false;
+        }
     }
     static async toggleLike(tweetId, userId) {
-        // CHECK EXISTING LIKE
-        const existingLike = await db_1.prismaClient.like.findUnique({
-            where: {
-                userId_tweetId: {
+        try {
+            // CHECK EXISTING LIKE
+            const existingLike = await db_1.prismaClient.like.findUnique({
+                where: {
+                    userId_tweetId: {
+                        userId,
+                        tweetId,
+                    },
+                },
+            });
+            // UNLIKE
+            if (existingLike) {
+                await db_1.prismaClient.like.delete({
+                    where: {
+                        id: existingLike.id,
+                    },
+                });
+                return false;
+            }
+            // LIKE
+            await db_1.prismaClient.like.create({
+                data: {
                     userId,
                     tweetId,
                 },
-            },
-        });
-        // UNLIKE
-        if (existingLike) {
-            await db_1.prismaClient.like.delete({
-                where: {
-                    id: existingLike.id,
-                },
             });
+            return true;
+        }
+        catch (error) {
+            console.log("LIKE TOGGLE SKIPPED");
             return false;
         }
-        // LIKE
-        await db_1.prismaClient.like.create({
-            data: {
-                userId,
-                tweetId,
-            },
-        });
-        return true;
     }
     static async createComment(tweetId, content, userId) {
         const latestComment = await db_1.prismaClient.comment.findFirst({
@@ -172,11 +184,18 @@ class TweetService {
         if (comment.authorId !== userId) {
             throw new Error("Unauthorized");
         }
-        await db_1.prismaClient.comment.delete({
-            where: {
-                id: commentId,
-            },
-        });
+        try {
+            await db_1.prismaClient.comment.delete({
+                where: {
+                    id: commentId,
+                },
+            });
+            return true;
+        }
+        catch (error) {
+            console.log("COMMENT ALREADY DELETED");
+            return false;
+        }
         return true;
     }
 }

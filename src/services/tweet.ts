@@ -112,46 +112,58 @@ class TweetService {
     });
 
     // delete tweet from db
-    await prismaClient.tweet.delete({
-      where: {
-        id: tweetId,
-      },
-    });
-
-    return true;
-  }
-
-  public static async toggleLike(tweetId: string, userId: string) {
-    // CHECK EXISTING LIKE
-    const existingLike = await prismaClient.like.findUnique({
-      where: {
-        userId_tweetId: {
-          userId,
-          tweetId,
-        },
-      },
-    });
-
-    // UNLIKE
-    if (existingLike) {
-      await prismaClient.like.delete({
+    try {
+      await prismaClient.tweet.delete({
         where: {
-          id: existingLike.id,
+          id: tweetId,
         },
       });
 
+      return true;
+    } catch (error) {
+      console.log("TWEET ALREADY DELETED");
+
       return false;
     }
+  }
 
-    // LIKE
-    await prismaClient.like.create({
-      data: {
-        userId,
-        tweetId,
-      },
-    });
+  public static async toggleLike(tweetId: string, userId: string) {
+    try {
+      // CHECK EXISTING LIKE
+      const existingLike = await prismaClient.like.findUnique({
+        where: {
+          userId_tweetId: {
+            userId,
+            tweetId,
+          },
+        },
+      });
 
-    return true;
+      // UNLIKE
+      if (existingLike) {
+        await prismaClient.like.delete({
+          where: {
+            id: existingLike.id,
+          },
+        });
+
+        return false;
+      }
+
+      // LIKE
+      await prismaClient.like.create({
+        data: {
+          userId,
+          tweetId,
+        },
+      });
+
+      return true;
+    } catch (error) {
+      console.log("LIKE TOGGLE SKIPPED");
+
+      return false;
+    }
   }
 
   public static async createComment(
@@ -217,11 +229,19 @@ class TweetService {
       throw new Error("Unauthorized");
     }
 
-    await prismaClient.comment.delete({
-      where: {
-        id: commentId,
-      },
-    });
+    try {
+      await prismaClient.comment.delete({
+        where: {
+          id: commentId,
+        },
+      });
+
+      return true;
+    } catch (error) {
+      console.log("COMMENT ALREADY DELETED");
+
+      return false;
+    }
 
     return true;
   }
