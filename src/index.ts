@@ -17,9 +17,9 @@ async function init() {
   await testRedis();
 
   const httpServer = await initServer();
-
-  httpServer.listen(7000, () => {
-    console.log("Server started at port:7000");
+  const PORT = process.env.PORT || 7000;
+  httpServer.listen(PORT, () => {
+    console.log(`Server started at port:${PORT}`);
   });
 }
 
