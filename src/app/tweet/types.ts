@@ -1,9 +1,9 @@
 export const types = `#graphql
 
-    type ImageResponse {
-        imageURL: String
-        imagePublicId: String
-    }
+    # type ImageResponse {
+    #     imageURL: String
+    #     imagePublicId: String
+    # }
 
     input CreateTweetData {
         content:String!
