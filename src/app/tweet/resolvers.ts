@@ -12,19 +12,19 @@ const queries = {
 };
 
 const mutations = {
-  uploadImage: async (
-    parent: any,
-    { image }: { image: string },
-    ctx: GraphqlContext,
-  ) => {
-    if (!ctx.user || !ctx.user.id) {
-      throw new Error("Youre not authenticated");
-    }
+  // uploadImage: async (
+  //   parent: any,
+  //   { image }: { image: string },
+  //   ctx: GraphqlContext,
+  // ) => {
+  //   if (!ctx.user || !ctx.user.id) {
+  //     throw new Error("Youre not authenticated");
+  //   }
 
-    await rateLimit(`upload:${ctx.user.id}`, 10, 60);
+  //   await rateLimit(`upload:${ctx.user.id}`, 10, 60);
 
-    return TweetService.uploadTweetImage(image);
-  },
+  //   return TweetService.uploadTweetImage(image);
+  // },
 
   createTweet: async (
     parent: any,
