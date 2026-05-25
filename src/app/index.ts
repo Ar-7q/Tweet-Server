@@ -31,7 +31,14 @@ export async function initServer() {
       extended: true,
     }),
   );
-  app.use(cors());
+
+  cors({
+  origin: [
+    "https://koo-xi.vercel.app",
+    "http://localhost:4000",
+  ],
+  credentials: true,
+})
 
   app.get("/", (req,res) => {
   res.status(200).json({message:"Everything is fine"});
@@ -124,6 +131,13 @@ export async function initServer() {
 
   app.use(
     "/graphql",
+       cors({
+    origin: [
+      "https://koo-xi.vercel.app",
+      "http://localhost:4000",
+    ],
+    credentials: true,
+  }),
     expressMiddleware(graphqlServer, {
       context: async ({ req, res }) => {
         return {
