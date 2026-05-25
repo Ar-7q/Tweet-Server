@@ -65,16 +65,16 @@ class TweetService {
     return tweets;
   }
 
-  public static async uploadTweetImage(image: string) {
-    const uploadedImage = await cloudinary.uploader.upload(image, {
-      folder: "ArpitBackend/tweets",
-    });
+  // public static async uploadTweetImage(image: string) {
+  //   const uploadedImage = await cloudinary.uploader.upload(image, {
+  //     folder: "ArpitBackend/tweets",
+  //   });
 
-    return {
-      imageURL: uploadedImage.secure_url,
-      imagePublicId: uploadedImage.public_id,
-    };
-  }
+  //   return {
+  //     imageURL: uploadedImage.secure_url,
+  //     imagePublicId: uploadedImage.public_id,
+  //   };
+  // }
 
   public static async deleteTweet(tweetId: string, userId: string) {
     const tweet = await prismaClient.tweet.findUnique({
