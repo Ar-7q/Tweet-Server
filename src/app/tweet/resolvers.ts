@@ -82,14 +82,40 @@ const mutations = {
     }
     await rateLimit(`like:${ctx.user.id}`, 20, 10);
 
+    // const updatedTweet = await TweetService.toggleLike(tweetId, ctx.user.id);
+    // await redis.del("tweets:feed");
+
+    // const likesCount = await prismaClient.like.count({
+    //   where: {
+    //     tweetId,
+    //   },
+    // });
+
+    // here is the new one
     const updatedTweet = await TweetService.toggleLike(tweetId, ctx.user.id);
+
     await redis.del("tweets:feed");
+
+    // ADD THIS
+    const tweet = await prismaClient.tweet.findUnique({
+      where: {
+        id: tweetId,
+      },
+      select: {
+        authorId: true,
+      },
+    });
+
+    if (tweet) {
+      await redis.del(`user:${tweet.authorId}`);
+    }
 
     const likesCount = await prismaClient.like.count({
       where: {
         tweetId,
       },
     });
+    // --end--
 
     await pubsub.publish("TWEET_LIKED", {
       tweetLiked: {
@@ -117,6 +143,23 @@ const mutations = {
       ctx.user.id,
     );
     await redis.del("tweets:feed");
+
+    // new text
+
+    const tweet = await prismaClient.tweet.findUnique({
+      where: {
+        id: tweetId,
+      },
+      select: {
+        authorId: true,
+      },
+    });
+
+    if (tweet) {
+      await redis.del(`user:${tweet.authorId}`);
+    }
+
+    //--end--
 
     await pubsub.publish("COMMENT_ADDED", {
       commentAdded: {
@@ -150,6 +193,23 @@ const mutations = {
     );
 
     await redis.del("tweets:feed");
+
+    //--new text
+    if (comment) {
+      const tweet = await prismaClient.tweet.findUnique({
+        where: {
+          id: comment.tweetId,
+        },
+        select: {
+          authorId: true,
+        },
+      });
+
+      if (tweet) {
+        await redis.del(`user:${tweet.authorId}`);
+      }
+    }
+    //--end--
 
     await pubsub.publish("COMMENT_DELETED", {
       commentDeleted: {
